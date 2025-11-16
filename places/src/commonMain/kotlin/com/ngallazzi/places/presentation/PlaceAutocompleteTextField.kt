@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -150,3 +151,73 @@ fun PlaceAutoCompleteTextField(
         }
     }
 }
+
+@Composable
+fun PlaceAutoComplete(
+    modifier: Modifier = Modifier,
+    text: String = "",
+    languageCode: String = Locale.current.language,
+    onSuggestionSelected: suspend (PlaceDetails) -> Unit,
+    onClearText: () -> Unit = {},
+    onError: (Throwable?) -> Unit = {},
+    textField: @Composable (
+        value: TextFieldValue,
+        onValueChange: (TextFieldValue) -> Unit,
+        trailingIcon: @Composable (() -> Unit)?,
+    ) -> Unit
+) {
+    val helper = remember { PlacesHelper(KMPPlaces.getApiKey()) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val viewModel = remember(key1 = text) {
+        PlaceAutoCompleteTextFieldModel(
+            helper = helper,
+            languageCode = languageCode,
+            initialText = text
+        )
+    }
+
+    val state by viewModel.uiState.collectAsState()
+
+    Box(modifier) {
+        textField(
+            state.textFieldValue,
+            { viewModel.onValueChange(it) },
+            {
+                if (state.textFieldValue.text.isNotEmpty()) {
+                    IconButton(onClick = {
+                        viewModel.onClearText()
+                        onClearText()
+                    }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear text")
+                    }
+                }
+            }
+        )
+
+        DropdownMenu(
+            properties = PopupProperties(focusable = false),
+            expanded = state.isSuggestionsPopupExpanded,
+            onDismissRequest = { viewModel.onSuggestionPopupDismissRequested() }
+        ) {
+            state.suggestions.forEach { suggestion ->
+                DropdownMenuItem(
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.onSuggestionSelected(
+                                suggestion,
+                                onPlaceDetailsRetrieved = onSuggestionSelected
+                            )
+                        }
+                    },
+                    text = { Text(suggestion.description) }
+                )
+            }
+        }
+
+        state.error?.let { onError(it) }
+    }
+}
+
+
+

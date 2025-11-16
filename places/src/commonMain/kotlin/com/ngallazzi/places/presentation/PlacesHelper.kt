@@ -35,6 +35,17 @@ internal class PlacesHelper(private val apiKey: String) : SuggestionsInteractor,
                 prettyPrint = true
             })
         }
+
+        // uncomment to enable logging
+        /*
+             install(Logging) {
+                    logger = object : Logger {
+                        override fun log(message: String) {
+                            println("HTTP LOG → $message")
+                        }
+                    }
+                    level = LogLevel.ALL
+                }*/
     }
 
     private val suggestionsInteractor: SuggestionsInteractor = SuggestionsInteractorImpl(

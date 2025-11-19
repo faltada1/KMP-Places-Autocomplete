@@ -5,12 +5,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -129,14 +125,7 @@ fun PlaceAutoCompleteTextField(
             readOnly = readOnly,
             leadingIcon = leadingIcon,
             trailingIcon = {
-                if (text.isNotEmpty()) {
-                    IconButton(onClick = {
-                        viewModel.onClearText()
-                        onClearText()
-                    }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear text")
-                    }
-                }
+                // TODO clear text button
             },
             supportingText = supportingText
         )
@@ -184,14 +173,7 @@ fun PlaceAutoComplete(
             state.textFieldValue,
             { viewModel.onValueChange(it) },
             {
-                if (state.textFieldValue.text.isNotEmpty()) {
-                    IconButton(onClick = {
-                        viewModel.onClearText()
-                        onClearText()
-                    }) {
-                        Icon(Icons.Default.Clear, contentDescription = "Clear text")
-                    }
-                }
+                // TODO clear text button
             }
         )
 

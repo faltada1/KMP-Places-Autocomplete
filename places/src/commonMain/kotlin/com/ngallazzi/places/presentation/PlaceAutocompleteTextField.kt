@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -18,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
@@ -148,6 +150,7 @@ fun PlaceAutoComplete(
     languageCode: String = Locale.current.language,
     onSuggestionSelected: suspend (PlaceDetails) -> Unit,
     onClearText: () -> Unit = {},
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
     onError: (Throwable?) -> Unit = {},
     textField: @Composable (
         value: TextFieldValue,
@@ -178,6 +181,7 @@ fun PlaceAutoComplete(
         )
 
         DropdownMenu(
+            containerColor = containerColor,
             properties = PopupProperties(focusable = false),
             expanded = state.isSuggestionsPopupExpanded,
             onDismissRequest = { viewModel.onSuggestionPopupDismissRequested() }

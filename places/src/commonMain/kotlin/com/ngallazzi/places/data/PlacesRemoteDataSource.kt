@@ -26,7 +26,7 @@ internal class PlacesRemoteDataSource(
     override suspend fun searchAddress(
         address: String, languageCode: String
     ): Result<AutocompleteDTO> {
-        return handleAutocompleteCall("maps/api/place/autocomplete/json?input=$address&type=address&language=$languageCode")
+        return handleAutocompleteCall("maps/api/place/autocomplete/json?input=$address&language=$languageCode")
     }
 
     override suspend fun getPlaceDetails(

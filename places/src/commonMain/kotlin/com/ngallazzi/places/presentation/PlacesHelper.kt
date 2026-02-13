@@ -9,45 +9,12 @@ import com.ngallazzi.places.domain.Country
 import com.ngallazzi.places.domain.PlaceDetails
 import com.ngallazzi.places.domain.PlaceDetailsInteractor
 import com.ngallazzi.places.domain.SuggestionsInteractor
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.http.URLProtocol
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
+import com.ngallazzi.places.provideHttpClient
 
-private const val BASE_URL = "maps.googleapis.com"
-
-internal class PlacesHelper(private val apiKey: String) : SuggestionsInteractor,
+internal class PlacesHelper(apiKey: String) :
+    SuggestionsInteractor,
     PlaceDetailsInteractor {
-    private val httpClient = HttpClient {
-        defaultRequest {
-            url {
-                protocol = URLProtocol.HTTPS
-                host = BASE_URL
-                parameters["key"] = apiKey
-            }
-        }
-        install(ContentNegotiation) {
-            json(Json {
-                isLenient = true
-                ignoreUnknownKeys = true
-                prettyPrint = true
-            })
-        }
-
-        // uncomment to enable logging
-        /*
-             install(Logging) {
-                    logger = object : Logger {
-                        override fun log(message: String) {
-                            println("HTTP LOG → $message")
-                        }
-                    }
-                    level = LogLevel.ALL
-                }*/
-    }
-
+    private val httpClient = provideHttpClient(apiKey)
     private val suggestionsInteractor: SuggestionsInteractor = SuggestionsInteractorImpl(
         PlacesRemoteDataSource(
             httpClient

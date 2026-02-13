@@ -9,30 +9,77 @@ import io.ktor.client.request.get
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLQueryComponent
 
 internal class PlacesRemoteDataSource(
     private val httpClient: HttpClient
 ) : PlacesDataSource {
-    override suspend fun searchCity(name: String, languageCode: String): Result<AutocompleteDTO> {
-        return handleAutocompleteCall("maps/api/place/autocomplete/json?input=$name&types=(cities)&language=$languageCode")
+
+    override suspend fun searchCity(
+        sessionToken: String,
+        name: String,
+        languageCode: String
+    ): Result<AutocompleteDTO> {
+
+        val url = buildString {
+            append("maps/api/place/autocomplete/json?")
+            append("input=${name.encodeURLQueryComponent()}")
+            append("&types=(cities)")
+            append("&language=${languageCode.encodeURLQueryComponent()}")
+            append("&sessiontoken=${sessionToken.encodeURLQueryComponent()}")
+        }
+
+        return handleAutocompleteCall(url)
     }
 
     override suspend fun searchCountry(
-        name: String, languageCode: String
+        sessionToken: String,
+        name: String,
+        languageCode: String
     ): Result<AutocompleteDTO> {
-        return handleAutocompleteCall("maps/api/place/autocomplete/json?input=$name&type=country&language=$languageCode")
+
+        val url = buildString {
+            append("maps/api/place/autocomplete/json?")
+            append("input=${name.encodeURLQueryComponent()}")
+            append("&types=(regions)")
+            append("&language=${languageCode.encodeURLQueryComponent()}")
+            append("&sessiontoken=${sessionToken.encodeURLQueryComponent()}")
+        }
+
+        return handleAutocompleteCall(url)
     }
 
     override suspend fun searchAddress(
-        address: String, languageCode: String
+        sessionToken: String,
+        address: String,
+        languageCode: String
     ): Result<AutocompleteDTO> {
-        return handleAutocompleteCall("maps/api/place/autocomplete/json?input=$address&language=$languageCode")
+        val url = buildString {
+            append("maps/api/place/autocomplete/json?")
+            append("input=${address.encodeURLQueryComponent()}")
+            append("&types=address")
+            append("&locationbias=circle:300000@49.8,15.5")
+            append("&language=${languageCode.encodeURLQueryComponent()}")
+            append("&sessiontoken=${sessionToken.encodeURLQueryComponent()}")
+        }
+        return handleAutocompleteCall(url)
     }
 
     override suspend fun getPlaceDetails(
-        placeId: String, languageCode: String
+        sessionToken: String,
+        placeId: String,
+        languageCode: String
     ): Result<PlaceDetailsApiDTO> {
-        return handlePlaceDetailsCall("maps/api/place/details/json?place_id=$placeId&language=$languageCode")
+
+        val url = buildString {
+            append("maps/api/place/details/json?")
+            append("place_id=${placeId.encodeURLQueryComponent()}")
+            append("&language=${languageCode.encodeURLQueryComponent()}")
+            append("&fields=name,address_components,formatted_address")
+            append("&sessiontoken=${sessionToken.encodeURLQueryComponent()}")
+        }
+
+        return handlePlaceDetailsCall(url)
     }
 
     private suspend fun handleAutocompleteCall(url: String): Result<AutocompleteDTO> {
@@ -40,7 +87,8 @@ internal class PlacesRemoteDataSource(
             val result = httpClient.get(url) {
                 contentType(ContentType.Application.Json)
             }
-            return when (result.status) {
+
+            when (result.status) {
                 HttpStatusCode.OK -> {
                     val response = result.body<AutocompleteDTO>()
                     when (response.status) {
@@ -49,12 +97,11 @@ internal class PlacesRemoteDataSource(
                         else -> Result.failure(Exception(response.status))
                     }
                 }
-
-                else -> Result.failure(Exception(Exception(result.toString())))
+                else -> Result.failure(Exception(result.status.toString()))
             }
 
         } catch (e: Exception) {
-            Result.failure(Throwable(e))
+            Result.failure(e)
         }
     }
 
@@ -63,7 +110,8 @@ internal class PlacesRemoteDataSource(
             val result = httpClient.get(url) {
                 contentType(ContentType.Application.Json)
             }
-            return when (result.status) {
+
+            when (result.status) {
                 HttpStatusCode.OK -> {
                     val response = result.body<PlaceDetailsApiDTO>()
                     when (response.status) {
@@ -72,12 +120,11 @@ internal class PlacesRemoteDataSource(
                         else -> Result.failure(Exception(response.status))
                     }
                 }
-
-                else -> Result.failure(Exception(Exception(result.toString())))
+                else -> Result.failure(Exception(result.status.toString()))
             }
 
         } catch (e: Exception) {
-            Result.failure(Throwable(e))
+            Result.failure(e)
         }
     }
 }

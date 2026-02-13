@@ -61,30 +61,34 @@ internal class PlacesHelper(private val apiKey: String) : SuggestionsInteractor,
     )
 
     override suspend fun getCountrySuggestions(
+        sessionToken: String,
         search: String,
         languageCode: String
     ): Result<List<Country>> {
-        return suggestionsInteractor.getCountrySuggestions(search, languageCode)
+        return suggestionsInteractor.getCountrySuggestions(sessionToken, search, languageCode)
     }
 
     override suspend fun getCitySuggestions(
+        sessionToken: String,
         search: String,
         languageCode: String
     ): Result<List<City>> {
-        return suggestionsInteractor.getCitySuggestions(search, languageCode)
+        return suggestionsInteractor.getCitySuggestions(sessionToken, search, languageCode)
     }
 
     override suspend fun getAddressSuggestions(
+        sessionToken: String,
         search: String,
         languageCode: String
     ): Result<List<Address>> {
-        return suggestionsInteractor.getAddressSuggestions(search, languageCode)
+        return suggestionsInteractor.getAddressSuggestions(sessionToken, search, languageCode)
     }
 
     override suspend fun getPlaceDetails(
+        sessionToken: String,
         placeId: String,
         languageCode: String
     ): Result<PlaceDetails> {
-        return detailsInteractor.getPlaceDetails(placeId, languageCode)
+        return detailsInteractor.getPlaceDetails(sessionToken, placeId, languageCode)
     }
 }

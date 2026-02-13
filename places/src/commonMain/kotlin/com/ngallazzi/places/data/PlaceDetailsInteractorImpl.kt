@@ -9,11 +9,12 @@ internal class PlaceDetailsInteractorImpl(
     private val placesDataSource: PlacesDataSource,
 ) : PlaceDetailsInteractor {
     override suspend fun getPlaceDetails(
+        sessionToken: String,
         placeId: String, languageCode: String
     ): Result<PlaceDetails> {
         return runCatching {
             val response =
-                placesDataSource.getPlaceDetails(placeId = placeId, languageCode).getOrThrow()
+                placesDataSource.getPlaceDetails(sessionToken = sessionToken, placeId = placeId, languageCode).getOrThrow()
             val formattedAddress = response.result.formattedAddress
             val addressComponents = response.result.addressComponents
             val postalCode = findByTypeShort(addressComponents, "postal_code").orEmpty()
@@ -21,12 +22,12 @@ internal class PlaceDetailsInteractorImpl(
             val cityName = extractCitySmart(addressComponents).orEmpty()
             return Result.success(
                 PlaceDetails(
-                    id = response.result.placeId,
-                    formattedAddress = formattedAddress,
+                    id = placeId,
+                    formattedAddress = formattedAddress.orEmpty(),
                     postalCode = postalCode,
                     country = countryName,
                     city = cityName,
-                    shortAddress = response.result.name
+                    shortAddress = response.result.name.orEmpty()
                 )
             )
         }

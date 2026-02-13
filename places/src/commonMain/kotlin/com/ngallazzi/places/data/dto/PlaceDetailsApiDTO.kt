@@ -11,8 +11,7 @@ internal data class PlaceDetailsApiDTO(
 
 @Serializable
 internal data class DTOResult(
-    @SerialName("place_id") val placeId: String,
-    @SerialName("address_components") val addressComponents: List<AddressComponents>,
-    @SerialName("formatted_address") val formattedAddress: String,
-    @SerialName("name") val name: String
+    @SerialName("address_components") val addressComponents: List<AddressComponents> = emptyList(),
+    @SerialName("formatted_address") val formattedAddress: String? = null,
+    @SerialName("name") val name: String? = null
 )

@@ -11,26 +11,42 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 internal class PlaceAutoCompleteTextFieldModel(
+    searchOnInit: Boolean = false,
     private val helper: PlacesHelper,
     private val languageCode: String,
     initialText: String,
 ) : ViewModel() {
+
+    @OptIn(ExperimentalUuidApi::class)
+    private val sessionToken = Uuid.random().toString()
+
     private val _uiState = MutableStateFlow(
         PlaceAutocompleteState(
             textFieldValue = TextFieldValue(
-                text = initialText, selection = TextRange(initialText.length)
+                text = "",
+                selection = TextRange(initialText.length)
             )
         )
     )
     val uiState: StateFlow<PlaceAutocompleteState> = _uiState.asStateFlow()
 
+    init {
+        if (searchOnInit) {
+            onValueChange(TextFieldValue(initialText, TextRange(initialText.length)))
+        }
+    }
+
     fun onValueChange(value: TextFieldValue) {
         if (value.text.isNotEmpty() && value.text != _uiState.value.textFieldValue.text) {
             viewModelScope.launch {
                 getSuggestions(
-                    value.text, languageCode = languageCode
+                    sessionToken = sessionToken,
+                    text = value.text,
+                    languageCode = languageCode
                 ).fold(onSuccess = { places ->
                     _uiState.value = _uiState.value.copy(
                         suggestions = places.map {
@@ -56,23 +72,27 @@ internal class PlaceAutoCompleteTextFieldModel(
     }
 
     private suspend fun getSuggestions(
-        text: String, languageCode: String
+        sessionToken: String,
+        text: String,
+        languageCode: String
     ): Result<List<Place>> {
-        return helper.getAddressSuggestions(search = text, languageCode)
+        return helper.getAddressSuggestions(sessionToken, search = text, languageCode)
     }
 
     suspend fun onSuggestionSelected(
-        suggestion: Suggestion, onPlaceDetailsRetrieved: suspend (PlaceDetails) -> Unit
+        suggestion: Suggestion,
+        onPlaceDetailsRetrieved: suspend (PlaceDetails) -> Unit
     ) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 textFieldValue = _uiState.value.textFieldValue.copy(
                     text = suggestion.description,
                     selection = TextRange(suggestion.description.length)
-                ), isSuggestionsPopupExpanded = false, error = null
+                ),
+                isSuggestionsPopupExpanded = false, error = null
             )
         }
-        helper.getPlaceDetails(suggestion.placeId, languageCode).fold(onSuccess = {
+        helper.getPlaceDetails(sessionToken, suggestion.placeId, languageCode).fold(onSuccess = {
             val placeDetails = PlaceDetails(
                 id = it.id,
                 shortAddress = it.shortAddress,
